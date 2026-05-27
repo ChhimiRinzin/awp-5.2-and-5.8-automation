@@ -6,8 +6,9 @@ from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.utils import get_column_letter
 from io import BytesIO
+import os
 
-st.set_page_config(page_title="AWP 5.2 Automation", layout="centered")
+st.set_page_config(page_title="AWP 5.2 Automation", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
 <style>
@@ -16,99 +17,130 @@ st.markdown("""
 
 [data-testid="stAppViewContainer"] { background: #f8fafc; min-height: 100vh; }
 [data-testid="stHeader"] { background: transparent; }
-.block-container { max-width: 720px; padding-top: 0 !important; padding-bottom: 3rem; }
+.block-container { max-width: 720px; padding-top: 0rem !important; padding-bottom: 2rem !important; }
 #MainMenu, footer { visibility: hidden; }
 
-.hero { text-align: center; padding: 1rem 0 1.8rem; }
-.hero .badge { display: inline-flex; align-items: center; gap: 6px; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; border-radius: 999px; padding: 5px 14px; font-size: 12px; font-weight: 600; letter-spacing: .04em; margin-bottom: 20px; }
+/* Hero */
+.hero { text-align: center; padding: 0.2rem 0 0.5rem; }
+.hero .badge { display: inline-flex; align-items: center; gap: 6px; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; border-radius: 999px; padding: 5px 14px; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
 .hero .badge-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; animation: pulse 2s infinite; }
+[data-testid="stImage"] { margin: -8px 0 -6px 0 !important; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.35)} }
-.hero h1 { font-size: 34px; font-weight: 700; line-height: 1.18; letter-spacing: -.04em; color: #0f172a; margin: 0 0 10px; }
-.hero h1 span.green { color: 16a34a; }
-.hero h1 span.blue  { color: #2563eb; }
-.hero h1 span.green{ color: #7c3aed; }
+.hero h1 { font-size: 34px; font-weight: 700; line-height: 1.18; letter-spacing: -.04em; color: #0f172a; margin: 0 0 0.5px 0; }
+.hero h1 span.green { color: #16a34a; }
 .hero p { font-size: 15px; line-height: 1.7; color: #64748b; margin: 0; }
 
-.steps-bar { display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 16px 20px; margin-top: 1.2rem; box-shadow: 0 2px 10px rgba(15,23,42,.04); }
+/* Steps bar */
+.steps-bar { display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 12px 20px; margin: 1rem 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
 .step-item { display: flex; align-items: center; justify-content: center; gap: 10px; flex: 1; }
-.step-num  { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid #dbe4ee; background: #f8fafc; color: #64748b; }
+.step-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid #dbe4ee; background: #f8fafc; color: #64748b; }
 .step-num.done   { background: #16a34a; border-color: #16a34a; color: white; }
 .step-num.active { background: linear-gradient(135deg,#16a34a,#15803d); border-color: #15803d; color: white; }
-.step-text        { font-size: 13px; font-weight: 500; color: #64748b; }
+.step-text { font-size: 13px; font-weight: 500; color: #64748b; }
 .step-text.active { color: #0f172a; }
 .step-text.done   { color: #15803d; }
 .step-connector      { width: 44px; height: 2px; background: #e2e8f0; border-radius: 999px; }
 .step-connector.done { background: #22c55e; }
 
-/* Uploaded PDF container */
-[data-testid="stFileUploader"] section{
-    background:#ecfdf5 !important;
-    border:2px solid #22c55e !important;
-    border-radius:20px !important;
-    padding:18px 22px !important;
-    margin-top:16px !important;
+/* Dropzone */
+[data-testid="stFileUploaderDropzone"] {
+    background: #ffffff !important; border: 2px dashed #cbd5e1 !important;
+    border-radius: 24px !important; padding: 2rem 2rem 1.8rem !important;
+    box-shadow: 0 4px 20px rgba(15,23,42,.04) !important; transition: all 0.2s ease !important;
+    min-height: 280px !important; display: flex !important; flex-direction: column-reverse !important;
+    align-items: center !important; justify-content: center !important; gap: 18px !important;
 }
-
-/* Align PDF row */
-[data-testid="stFileUploaderFile"]{
-    display:flex !important;
-    align-items:center !important;
-    gap:18px !important;
-}
-
-/* PDF icon */
-[data-testid="stFileUploaderFile"] svg{
-    width:65px !important;
-    height:65px !important;
-    min-width:65px !important;
-    min-height:65px !important;
-    color:#ef4444 !important;
-}
-
-/* File name */
-[data-testid="stFileUploaderFileName"]{
-    font-size:20px !important;
-    font-weight:700 !important;
-    color:#111827 !important;
-}
-
-/* File size */
-[data-testid="stFileUploaderFileSize"]{
-    font-size:14px !important;
-    color:#6b7280 !important;
-}
-
-/* Delete button (+ button) */
-[data-testid="stFileUploaderDeleteBtn"]{
-    background:#16a34a !important;
-    border:none !important;
-    border-radius:14px !important;
-    padding:8px !important;
-}
-
-[data-testid="stFileUploaderDeleteBtn"] svg{
-    color:white !important;
-    width:46px !important;
-    height:46px !important;
-}
-            
-[data-testid="stFileUploaderDropzone"] { background: #fff !important; border: 2px dashed #dbe4ee !important; border-radius: 24px !important; padding: 2rem 2rem 1.8rem !important; box-shadow: 0 4px 20px rgba(15,23,42,.04) !important; transition: all .2s ease !important; min-height: 280px !important; display: flex !important; flex-direction: column-reverse !important; align-items: center !important; justify-content: center !important; gap: 18px !important; }
-[data-testid="stFileUploaderDropzone"]:hover { border-color: #22c55e !important; background: #fcfffd !important; transform: translateY(-2px); }
-
-[data-testid="stFileUploaderDropzoneInstructions"] { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; width: 100% !important; text-align: center !important; margin-top: 0 !important; order: 1 !important; }
+[data-testid="stFileUploaderDropzone"]:hover { border-color: #16a34a !important; background: #f0fdf4 !important; transform: translateY(-3px); }
 [data-testid="stFileUploaderDropzoneInstructions"]::before { content: ""; width: 58px; height: 58px; display: block; margin-bottom: 18px; background-image: url("data:image/svg+xml,%3Csvg width='58' height='58' viewBox='0 0 58 58' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='29' cy='29' r='29' fill='%23dcfce7'/%3E%3Cpath d='M29 18v14M22 25l7-7 7 7' stroke='%2315803d' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M18 39c-3 0-5-2-5-5 0-2.7 2-4.8 4.6-5.5.8-3.5 3.9-6.2 7.7-6.2 4.3 0 7.7 3.4 7.7 7.7h.8c2.8 0 5 2 5 5s-2 5-5 5H18z' stroke='%2315803d' stroke-width='2.2' stroke-linecap='round' fill='none'/%3E%3C/svg%3E"); background-size: contain; background-repeat: no-repeat; background-position: center; }
 [data-testid="stFileUploaderDropzoneInstructions"] div[data-testid="stMarkdownContainer"],
 [data-testid="stFileUploaderDropzoneInstructions"] > div:first-child > span { display: none !important; }
 [data-testid="stFileUploaderDropzoneInstructions"]::after { content: "Drag & drop your PDF here\A\ASupports PDF files up to 200MB"; white-space: pre-line; font-size: 15px; line-height: 1.8; color: #64748b; text-align: center; }
+[data-testid="stFileUploaderDropzone"] button { background: linear-gradient(135deg,#16a34a,#15803d) !important; border-radius: 40px !important; font-weight: 600 !important; padding: 10px 20px !important; width: auto !important; min-width: 180px; margin-top: 16px !important; }
+[data-testid="stFileUploaderDropzone"] button:hover { transform: translateY(-1px); background: linear-gradient(135deg,#22c55e,#16a34a) !important; }
+[data-testid="stFileUploaderFile"] { display: none !important; }
 
-[data-testid="stFileUploaderDropzone"] button { background: linear-gradient(135deg,#16a34a,#15803d) !important; color: white !important; border: none !important; border-radius: 14px !important; font-size: 15px !important; font-weight: 600 !important; padding: 13px 20px !important; width: 240px !important; margin-top: 18px !important; box-shadow: 0 2px 8px rgba(22,163,74,.18) !important; transition: all .15s ease !important; }
-[data-testid="stFileUploaderDropzone"] button:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 12px rgba(22,163,74,.25) !important; }
-[data-testid="stFileUploaderDropzone"] small { display: none !important; }
+/* Button centering wrapper */
+.btn-center { display: flex; justify-content: center; margin: 0.5rem 0; }
+
+/* All stButtons — green, fixed width */
+.stButton > button {
+    background: linear-gradient(135deg, #16a34a, #15803d) !important;
+    border: none !important; border-radius: 40px !important;
+    font-weight: 600 !important; color: white !important;
+    transition: all 0.25s ease !important;
+    width: auto !important; min-width: 200px; max-width: 280px;
+    padding: 10px 32px !important;
+    box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+    display: block; margin: 0 auto;
+}
+.stButton > button:hover {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(22,163,74,0.5) !important;
+    color: white !important;
+}
+
+/* Remove / Start Over button — muted style */
+.remove-btn .stButton > button {
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    min-width: 120px; max-width: 160px;
+    padding: 8px 20px !important;
+}
+.remove-btn .stButton > button:hover {
+    background: #fee2e2 !important;
+    color: #dc2626 !important;
+    border-color: #fecaca !important;
+    box-shadow: none !important;
+    transform: translateY(-1px);
+}
+
+/* Download button — green, fixed width */
+[data-testid="stDownloadButton"] button {
+    background: linear-gradient(135deg, #16a34a, #15803d) !important;
+    border: none !important; border-radius: 40px !important;
+    font-weight: 600 !important; transition: all 0.25s ease !important;
+    width: auto !important; min-width: 220px; max-width: 300px;
+    padding: 10px 32px !important;
+    box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+    display: block; margin: 0 auto;
+}
+[data-testid="stDownloadButton"] button:hover {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(22,163,74,0.5) !important;
+}
+
+/* Input */
+[data-testid="stTextInput"] input { border-radius: 40px; border: 1px solid #e2e8f0; padding: 10px 16px; font-size: 14px; }
+
+/* Upload success */
+.upload-success { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px; padding: 1rem 1.2rem; text-align: center; margin: 0.5rem 0; animation: fadeInUp 0.3s ease; }
+.upload-success .filename { font-weight: 600; color: #166534; word-break: break-all; }
+
+/* Result box */
+.result-box { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 24px; padding: 1.5rem; margin-top: 1.5rem; border: 1px solid #bbf7d0; text-align: center; animation: fadeInUp 0.4s ease; }
+.result-title { font-weight: 700; font-size: 18px; color: #166534; margin-bottom: 1rem; }
+@keyframes fadeInUp { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
+
+/* Footer */
+.app-footer { text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; margin-top: 2rem; }
+
+@media (max-width: 640px) {
+    .hero h1 { font-size: 24px; }
+    .steps-bar { flex-wrap: wrap; gap: 12px; }
+    .step-connector { display: none; }
+}
+</style>
 """, unsafe_allow_html=True)
 
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
+# ===================================================================
+# Helpers
+# ===================================================================
 def clean_title(t):
     return re.sub(r'[\/*?:\[\]]', '', t).strip()[:31]
 
@@ -156,7 +188,6 @@ def extract_header_info(all_tables):
                     if len(vals) >= 1: info["assessed_date"] = vals[0]
                     if len(vals) >= 2: info["reviewed_date"] = vals[1]
     return info
-
 
 def generate_excel(pdf_file):
     with pdfplumber.open(pdf_file) as pdf:
@@ -250,13 +281,11 @@ def generate_excel(pdf_file):
             ws.column_dimensions[get_column_letter(ci)].width = 22
         ws.column_dimensions[get_column_letter(REM_COL)].width = 28
 
-        # Row 1 — title
         ws.row_dimensions[1].height = 28
         ws.merge_cells(start_row=1, start_column=2, end_row=1, end_column=LAST_COL)
         ws["B1"] = f"AWP 5.2 Performing Substantive Audit Procedures - {sheet_name}"
         sc(ws["B1"], bold=True, sz=13, ha="center", f=TITLE, color="FFFFFF")
 
-        # Rows 2-3 — entity / period
         for r, lbl, key in [(2,"Name of the Entity :","entity_name"),(3,"Period of Audit :","audit_period")]:
             ws.row_dimensions[r].height = 22
             sc(ws.cell(r, 2, lbl), bold=True, f=BLUE, wrap=False)
@@ -272,7 +301,6 @@ def generate_excel(pdf_file):
 
         ws.row_dimensions[4].height = 6
 
-        # Rows 5-8 — performed/reviewed block
         for r in range(5, 9):
             ws.row_dimensions[r].height = 22
 
@@ -305,25 +333,21 @@ def generate_excel(pdf_file):
 
         ws.row_dimensions[9].height = 6
 
-        # Row 10 — Step 1 header
         ws.row_dimensions[10].height = 20
         ws.merge_cells(start_row=10, start_column=2, end_row=10, end_column=LAST_COL)
         ws["B10"] = "STEP 1 : Trace risks, control activity, substantive audit procedures and relevant audit assertions"
         sc(ws["B10"], bold=True, sz=10, f=PINK, ha="left", color="FFFFFF")
 
-        # Row 11 — class label
         ws.row_dimensions[11].height = 18
         ws.merge_cells(start_row=11, start_column=2, end_row=11, end_column=LAST_COL)
         ws["B11"] = f"Significant COTABD:  {sheet_name}"
         sc(ws["B11"], bold=True, sz=10, f=BLUE, ha="left")
 
-        # Row 12 — Step 1 column headers
         ws.row_dimensions[12].height = 32
         for ci, hdr in [(2,"Risk Description"),(3,"Relevant Assertions"),(4,"Control Activity"),(5,"Substantive Testing Procedures")]:
             sc(ws.cell(12, ci, hdr), bold=True, f=BHDR, ha="center", color="FFFFFF", sz=10)
         outer_med(ws, 12, 12, 2, 5)
 
-        # Step 1 data rows
         s1_start = 13
         for i, entry in enumerate(records):
             rf = STRIPE if i % 2 else WHITE
@@ -341,7 +365,6 @@ def generate_excel(pdf_file):
         if records:
             outer_med(ws, s1_start, s1_end, 2, 5)
 
-        # Step 2 header
         s2_title = s1_end + 2
         ws.row_dimensions[s2_title - 1].height = 6
         ws.row_dimensions[s2_title].height = 20
@@ -356,7 +379,6 @@ def generate_excel(pdf_file):
             ws.merge_cells(start_row=h1, start_column=ci, end_row=h2, end_column=ci)
             sc(ws.cell(h1, ci, hdr), bold=True, f=BHDR, ha="center", color="FFFFFF", sz=10)
 
-        # Dynamic risk/assertion columns
         risk_groups = {}
         for col_i, (rt, _) in enumerate(rac, DYN_START):
             risk_groups.setdefault(rt, []).append(col_i)
@@ -378,7 +400,6 @@ def generate_excel(pdf_file):
             c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
             c.fill = YELLOW; c.border = tb()
 
-        # Data rows
         dr_start, dr_end = h2 + 1, h2 + 20
         ynv = DataValidation(type="list", formula1='"Yes,No"', allow_blank=True)
         ws.add_data_validation(ynv)
@@ -397,7 +418,6 @@ def generate_excel(pdf_file):
 
         outer_med(ws, s2_title, dr_end, 2, LAST_COL)
 
-        # Overall conclusion
         conc = dr_end + 3
         ws.row_dimensions[dr_end + 2].height = 6
         ws.row_dimensions[conc].height = 60
@@ -416,65 +436,124 @@ def generate_excel(pdf_file):
     wb.save(out); out.seek(0)
     return out
 
-
-# ── Step bar ──────────────────────────────────────────────────────────────────
-
 def steps_bar(current: int):
-    labels, icons = ["Upload","Automate","Download"], ["☁","⚙","⬇"]
+    labels, icons = ["Upload", "Automate", "Download"], ["☁", "⚙", "⬇"]
     html = '<div class="steps-bar">'
     for i, (lbl, icon) in enumerate(zip(labels, icons), 1):
-        nc = "done" if i < current else ("active" if i == current else "")
+        nc  = "done" if i < current else ("active" if i == current else "")
         dot = "✓" if i < current else icon
         html += f'<div class="step-item"><div class="step-num {nc}">{dot}</div><span class="step-text {nc}">{lbl}</span></div>'
         if i < len(labels):
             html += f'<div class="step-connector {"done" if i < current else ""}"></div>'
     st.markdown(html + '</div>', unsafe_allow_html=True)
 
+# ===================================================================
+# MAIN TOOL PAGE
+# ===================================================================
+def tool_page():
+    logo_path = "AWP Logo.png"
 
-# ── UI ────────────────────────────────────────────────────────────────────────
+    # Hero badge
+    st.markdown("""
+    <div class="hero">
+        <div class="badge"><div class="badge-dot"></div>Automation at Work</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-st.markdown("""
-<div class="hero">
-    <div class="badge"><div class="badge-dot"></div>Automation at Work</div>
-    <h1>AWP 5.2 Automation,<br>
-        <span class="green">Smarter.</span>
-        <span class="green"> Faster.</span>
-        <span class="green"> Better.</span>
-    </h1>
-    <p>Upload your audit report PDF and let automation do the rest.</p>
-</div>
-""", unsafe_allow_html=True)
+    # Logo
+    if os.path.exists(logo_path):
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.image(logo_path, use_container_width=True)
+    else:
+        st.info("Logo not found. Place 'awp_5.2-removebg-preview.png' in the same directory.")
 
-uploaded_pdf = st.file_uploader("⬆  Choose PDF File", type=["pdf"], label_visibility="collapsed")
+    # Hero heading
+    st.markdown("""
+    <div class="hero">
+        <h1><span class="green">Smarter.</span><span class="green"> Faster.</span><span class="green"> Better.</span></h1>
+        <p>Upload your audit report PDF and let automation do the rest.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-if uploaded_pdf is None:
-    steps_bar(1)
-else:
-    default_name = re.sub(r'\.pdf$', '', uploaded_pdf.name, flags=re.IGNORECASE)
-    file_name_input = st.text_input("Output filename (no extension needed)",
-                                    value=default_name or "FINAL_Audit_Workbook",
-                                    placeholder="e.g. BCTA_Audit_2024")
-    steps_bar(2)
+    # ── Session state init ──────────────────────────────────────────
+    for key, default in [("uploaded_pdf", None), ("excel_output", None), ("excel_ready", False)]:
+        if key not in st.session_state:
+            st.session_state[key] = default
 
-    if st.button("⚙️  Extract to Excel", use_container_width=True):
-        with st.status("Processing your PDF…", expanded=True) as status:
-            st.write("📖 Reading PDF tables…")
-            excel_output = generate_excel(uploaded_pdf)
-            st.write("🗂️ Building workbook structure…")
-            st.write("🎨 Applying formatting…")
-            status.update(label="✅ Done!", state="complete", expanded=False)
+    # ── STEP 1 : Upload ────────────────────────────────────────────
+    if st.session_state.uploaded_pdf is None:
+        steps_bar(1)
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            uploaded_pdf = st.file_uploader("⬆  Choose PDF File", type=["pdf"], label_visibility="collapsed")
+            if uploaded_pdf is not None:
+                st.session_state.uploaded_pdf = uploaded_pdf
+                st.session_state.excel_ready  = False
+                st.session_state.excel_output = None
+                st.rerun()
 
-        safe_name = re.sub(r'[\\/*?:"<>|]', '_', file_name_input).strip() or "FINAL_Audit_Workbook"
+    # ── STEP 2 : Extract ───────────────────────────────────────────
+    elif not st.session_state.excel_ready:
+        steps_bar(2)
+
+        # PDF success card with inline Remove button
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.markdown(f"""
+            <div class="upload-success">
+                ✅ <strong>PDF uploaded successfully</strong><br>
+                <span class="filename">{st.session_state.uploaded_pdf.name}</span>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown('<div class="remove-btn">', unsafe_allow_html=True)
+            if st.button("🗑 Remove PDF", key="remove_pdf"):
+                st.session_state.uploaded_pdf = None
+                st.session_state.excel_ready  = False
+                st.session_state.excel_output = None
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        default_name = re.sub(r'\.pdf$', '', st.session_state.uploaded_pdf.name, flags=re.IGNORECASE)
+        st.session_state.file_name_input = st.text_input(
+            "Output filename (no extension needed)",
+            value=st.session_state.get("file_name_input", default_name or "FINAL_Audit_Workbook"),
+            placeholder="e.g. BCTA_Audit_2024"
+        )
+
+        if st.button("⚙️  Extract to Excel"):
+            with st.status("Processing your PDF…", expanded=True) as status:
+                st.write("📖 Reading PDF tables…")
+                st.session_state.excel_output = generate_excel(st.session_state.uploaded_pdf)
+                st.write("🗂️ Building workbook structure…")
+                st.write("🎨 Applying formatting…")
+                status.update(label="✅ Done!", state="complete", expanded=False)
+            st.session_state.excel_ready = True
+            st.rerun()
+
+    # ── STEP 3 : Download ──────────────────────────────────────────
+    else:
         steps_bar(3)
+
+        safe_name = re.sub(r'[\/*?:"<>|]', '_', st.session_state.get("file_name_input", "FINAL_Audit_Workbook")).strip() or "FINAL_Audit_Workbook"
 
         st.markdown('<div class="result-box"><div class="result-title">✅ Excel generated successfully</div>', unsafe_allow_html=True)
         st.download_button(
             label=f"⬇️  Download {safe_name}.xlsx",
-            data=excel_output,
+            data=st.session_state.excel_output,
             file_name=f"{safe_name}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
         )
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown('<div style="margin-top:0.75rem;"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="remove-btn">', unsafe_allow_html=True)
+        if st.button("↩  Process Another PDF"):
+            st.session_state.uploaded_pdf = None
+            st.session_state.excel_ready  = False
+            st.session_state.excel_output = None
+            st.rerun()
+        st.markdown('</div></div>', unsafe_allow_html=True)
 
-st.markdown('<div class="app-footer">© Royal Audit Authority · Supreme Audit Institution of Bhutan</div>', unsafe_allow_html=True)
+    st.markdown('<div class="app-footer">© Royal Audit Authority · Supreme Audit Institution of Bhutan</div>', unsafe_allow_html=True)
+
+tool_page()
