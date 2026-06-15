@@ -144,9 +144,15 @@ st.markdown("""
 def clean_title(t):
     return re.sub(r'[\/*?:\[\]]', '', t).strip()[:31]
 
-def clean_cell(v):
-    return "" if v is None else str(v).replace("\n", " ").strip()
+# Pre-compiled regex for all illegal XML 1.0 control characters that openpyxl rejects
+_ILLEGAL_CHARS = re.compile(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]')
 
+def clean_cell(v):
+    """Convert a value to a clean string safe for openpyxl cells."""
+    if v is None:
+        return ""
+    s = str(v).replace("\n", " ").strip()
+    return _ILLEGAL_CHARS.sub('', s)
 def split_assertions(text):
     if not text:
         return []
@@ -472,7 +478,7 @@ def tool_page():
     st.markdown("""
     <div class="hero">
         <h1><span class="green">Smarter.</span><span class="green"> Faster.</span><span class="green"> Better.</span></h1>
-        <p>Upload your AWP 4.6 Risk Response PDF and Let Automation Do The Rest.</p>
+        <p>Upload your audit report PDF and let automation do the rest.</p>
     </div>
     """, unsafe_allow_html=True)
 
